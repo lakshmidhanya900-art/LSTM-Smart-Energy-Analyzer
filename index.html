@@ -1,0 +1,386 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>EnergyLSTM – Smart Energy Analyzer</title><style>:root{--bg:linear-gradient(160deg,#eff6ff,#fff 55%,#dbeafe);--card:#fff;--tx:#0f172a;--mu:#64748b;--b:#2563eb;--bd:#1e3a8a;--sh:0 8px 26px #1e3a8a14;--line:#e2e8f0}
+[data-theme=dark]{--bg:linear-gradient(160deg,#0b1220,#0f1b34);--card:#14213d;--tx:#e2e8f0;--mu:#94a3b8;--b:#60a5fa;--bd:#93c5fd;--sh:0 8px 26px #0006;--line:#26365a}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,Segoe UI,sans-serif;background:var(--bg) fixed;color:var(--tx);min-height:100vh}
+aside{position:fixed;inset:0 auto 0 0;width:250px;background:linear-gradient(180deg,#1e3a8a,#2563eb);color:#fff;padding:20px 14px;z-index:20;transition:.3s}
+.logo{font-weight:800;font-size:1.3rem;margin:4px 8px 22px}.logo small{display:block;font-weight:400;font-size:.75rem;opacity:.8}
+nav a{display:flex;gap:10px;padding:11px 12px;border-radius:12px;color:#fff;text-decoration:none;margin-bottom:4px;opacity:.85;transition:.2s}nav a:hover{background:#ffffff22;opacity:1}nav a.on{background:#fff;color:#1e3a8a;opacity:1;font-weight:600}
+.wrap{margin-left:250px}header{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;padding:12px 24px;background:var(--card);box-shadow:var(--sh)}header h1{font-size:1.15rem;margin:0;flex:1}
+.ico{border:0;background:var(--line);color:var(--tx);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:1rem}#burger{display:none}
+.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{font-size:.75rem;padding:5px 10px;border-radius:99px;background:var(--line)}.chip.ok{background:#dcfce7;color:#166534}.chip.bad{background:#fee2e2;color:#991b1b}.chip.warn{background:#fef3c7;color:#92400e}
+main{padding:24px;max-width:1300px;margin:auto}.page{animation:fade .45s}@keyframes fade{from{opacity:0;transform:translateY(10px)}}
+.hero{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:center;padding:28px;border-radius:26px;background:var(--card);box-shadow:var(--sh);margin-bottom:20px}.hero h2{font-size:clamp(1.6rem,3.5vw,2.5rem);color:var(--bd);margin:12px 0}
+.pill{background:var(--line);color:var(--b);padding:6px 14px;border-radius:99px;font-size:.8rem;font-weight:600}.art{max-width:300px;margin:auto;width:100%}.c1{fill:#dbeafe}.c2{fill:#bfdbfe;transform-origin:center}.pulse{animation:pl 3s infinite}.bolt{animation:fl 2.5s infinite}@keyframes pl{50%{transform:scale(1.07)}}@keyframes fl{50%{opacity:.65}}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}.btn{border:0;padding:10px 18px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#0ea5e9);color:#fff;font-weight:600;cursor:pointer;transition:.2s;box-shadow:0 6px 16px #2563eb44}.btn:hover{transform:translateY(-2px)}.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}.btn.ghost{background:transparent;color:var(--b);box-shadow:inset 0 0 0 1.5px var(--b)}
+.card{background:var(--card);border-radius:18px;padding:18px;box-shadow:var(--sh);margin-bottom:18px}.card h3{margin-top:0;color:var(--bd)}.card.empty{text-align:center;padding:40px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:18px}.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:18px}
+.stat{background:var(--card);border-radius:16px;padding:16px;box-shadow:var(--sh);animation:fade .5s}.stat small{color:var(--mu)}.stat b{display:block;font-size:1.45rem;color:var(--bd);margin-top:4px}.stat em{font-size:.75rem;color:var(--mu);font-style:normal}
+.ch{position:relative;height:290px}.muted{color:var(--mu)}.err{color:#dc2626}input,select{padding:9px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--tx);font:inherit}label{display:flex;flex-direction:column;gap:4px;font-size:.85rem}
+pre{background:#0f172a;color:#bfdbfe;padding:14px;border-radius:12px;overflow:auto;font-size:.78rem;max-height:260px}table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid var(--line);text-align:left}
+.bar{height:10px;background:var(--line);border-radius:9px;overflow:hidden;margin-top:12px}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2563eb,#06b6d4);transition:width .3s}
+.tag{font-size:.72rem;padding:3px 9px;border-radius:99px;font-weight:700}.tag.lstm{background:#dbeafe;color:#1d4ed8}.tag.rule{background:#fef3c7;color:#92400e}.low{background:#dcfce7;color:#166534}.medium{background:#fef3c7;color:#92400e}.high{background:#fee2e2;color:#991b1b}li{margin:9px 0}
+#toasts{position:fixed;right:16px;bottom:16px;z-index:50;display:flex;flex-direction:column;gap:8px}.toast{padding:12px 16px;border-radius:12px;color:#fff;box-shadow:0 8px 24px #0004;animation:fade .3s;max-width:360px}.toast.ok{background:#16a34a}.toast.err{background:#dc2626}.toast.info{background:#2563eb}
+#loader{position:fixed;inset:0;background:#0f172a99;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}.spin{width:48px;height:48px;border:5px solid #fff5;border-top-color:#fff;border-radius:50%;animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+.banner{background:#fef3c7;color:#92400e;padding:12px 20px;text-align:center;font-weight:600;position:relative;z-index:100}:focus-visible{outline:3px solid #60a5fa;outline-offset:2px}
+[hidden]{display:none!important}#authv{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg) fixed}#authv .card{width:min(400px,100%);margin:0}#authv input{width:100%;margin:6px 0}.tabs{display:flex;gap:8px;margin-bottom:12px}
+#shade{display:none}@media(max-width:900px){aside{transform:translateX(-100%)}aside.open{transform:none}aside.open+#shade{display:block;position:fixed;inset:0;background:#0006;z-index:15}.wrap{margin:0}#burger{display:block}.hero{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}.chips{display:none}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script></head><body>
+<noscript><div class="banner">EnergyLSTM needs JavaScript enabled.</div></noscript>
+<div id="authv"><div class="card"><div class="logo" style="color:var(--bd)">⚡ EnergyLSTM<small>Smart Energy Analyzer</small></div><div class="tabs"><button class="btn" id="tabL" type="button">Login</button><button class="btn ghost" id="tabR" type="button">Register</button></div><input id="lname" placeholder="Full name" autocomplete="name" hidden><input id="lemail" type="email" placeholder="Email" autocomplete="username"><input id="lpw" type="password" placeholder="Password (6+ characters)" autocomplete="current-password"><p class="err" id="lerr"></p><button class="btn" id="lgo" type="button">Login</button><p class="muted" style="font-size:.78rem">Demo login: accounts live only in this browser (password stored as a hash). This is not server-side security.</p></div></div>
+<aside id="side"><div class="logo">⚡ EnergyLSTM<small>Smart Energy Analyzer</small></div><nav id="nav"></nav></aside>
+<div id="shade"></div>
+<div class="wrap"><header><button id="burger" class="ico" aria-label="Open menu">☰</button><h1 id="ptitle">Home</h1><div class="chips"><span class="chip" id="chD">Dataset: –</span><span class="chip" id="chM">Model: –</span></div><span class="chip" id="chU"></span><button id="logout" class="ico" aria-label="Log out">Logout</button><button id="theme" class="ico" title="Light/Dark" aria-label="Toggle light/dark mode">🌓</button></header>
+<main>
+<section id="home" class="page"><div class="hero"><div><span class="pill">TensorFlow.js · LSTM · UCI Dataset · 100% in-browser</span><h2>Deep Learning-Based Smart Energy Consumption Prediction</h2><p>Load an available saved LSTM model or start training, then forecast the next hour and the next 24 hours and explore energy-use analysis. No server or Python required in the browser.</p>
+<div class="row"><button class="btn" data-go="training">▶ Start</button><button class="btn ghost" data-go="prediction">🔮 Predict</button><button class="btn ghost" data-go="analytics">📊 Analysis</button></div></div>
+<svg viewBox="0 0 300 300" class="art"><circle cx="150" cy="150" r="120" class="c1"/><circle cx="150" cy="150" r="85" class="c2 pulse"/><path d="M165 40 90 165h50l-15 95 85-135h-50z" fill="#2563eb" class="bolt"/></svg></div>
+<div class="grid3"><div class="card"><h3>1 · Dataset</h3><p>Real minute-level data aggregated to hourly kWh.</p></div><div class="card"><h3>2 · Train</h3><p>LSTM trained live with loss/MAE charts.</p></div><div class="card"><h3>3 · Predict</h3><p>Next-hour and 24-hour forecasts from the trained model only.</p></div></div></section>
+<section id="dashboard" class="page" hidden><div class="body"></div></section>
+<section id="dataset" class="page" hidden><div class="card"><h3>Load the UCI dataset</h3><p class="muted">Automatic loading tries <code>data/household_power_consumption.txt</code> next to this site, then the UCI download. Or upload the extracted file / your own CSV (Date;Time;Global_active_power;… or Datetime,Global_active_power).</p>
+<div class="row"><button class="btn" id="autoBtn">Auto-load dataset</button><input type="file" id="dfile" accept=".txt,.csv"><button class="btn ghost" id="dupBtn">Use uploaded file</button></div><div class="bar" id="dbar" hidden><i></i></div><p id="dmsg" class="muted"></p></div><div class="body"></div></section>
+<section id="training" class="page" hidden><div class="card"><h3>Train the LSTM</h3><p class="muted">Architecture: LSTM(48) → LSTM(24) → Dropout → Dense(16) → Dense(1). Window = 24 h → next hour. Split 70/15/15 chronological, Min-Max scaler fitted on training data only.</p>
+<p class="muted">Tip: use desktop Chrome or Edge (WebGL) and keep this tab open and visible while training.</p><div class="row"><label>Epochs <input id="ep" type="number" value="10" min="1" max="100"></label><label>Batch size <input id="bs" type="number" value="128" min="16" max="1024"></label><button class="btn" id="trainBtn">Start training</button><button class="btn ghost" id="stopBtn" disabled>Stop</button></div>
+<div class="bar" id="tbar"><i></i></div><p id="tmsg" class="muted">Idle.</p></div>
+<div class="grid2"><div class="card"><h3>Live loss (MSE, scaled)</h3><div class="ch"><canvas id="tc"></canvas></div></div><div class="card"><h3>Model storage</h3><p class="muted">After training the model is saved to browser IndexedDB and reloaded automatically next visit. To ship a pre-trained model with a static site, download the files and put them in <code>model/</code> (see README).</p><div class="row"><button class="btn ghost" id="dlBtn">Download model files</button><button class="btn ghost" id="delBtn">Delete saved model</button></div><pre id="tlog"></pre></div></div></section>
+<section id="prediction" class="page" hidden><div class="card"><h3>Prediction source</h3><p class="muted" id="psrc"></p><div class="row"><input type="file" id="ufile" accept=".txt,.csv"><button class="btn" id="uBtn">Predict from my CSV</button><button class="btn ghost" id="uRst">Use training dataset</button></div><p class="err" id="uerr"></p></div><div class="body"></div></section>
+<section id="analytics" class="page" hidden><div class="body"></div></section>
+<section id="performance" class="page" hidden><div class="body"></div></section>
+<section id="optimization" class="page" hidden><div class="card"><h3>Tariff</h3><div class="row"><label>Currency <input id="cur" size="3" value="₹"></label><label>Rate / kWh <input id="rate" type="number" step="0.1" min="0" value="7"></label><label>Fixed monthly <input id="fixed" type="number" min="0" value="0"></label><button class="btn" id="applyT">Apply</button></div></div><div class="body"></div></section>
+<section id="about" class="page" hidden><div class="grid2">
+<div class="card"><h3>Problem Statement</h3><p>Households cannot see future electricity demand, causing peak-time overuse and avoidable cost.</p></div><div class="card"><h3>Existing System</h3><p>Bills and meters report only the past; linear/statistical methods struggle with non-linear daily and weekly patterns.</p></div>
+<div class="card"><h3>Proposed System</h3><p>An LSTM trained in the browser on hourly data forecasts the next hour and next 24 hours; rule-based advice is derived from the forecast and is labelled as such.</p></div><div class="card"><h3>Dataset</h3><p>UCI Individual Household Electric Power Consumption (≈2.07M one-minute readings, Dec 2006–Nov 2010, one household in France). Global_active_power (kW) is averaged per hour (= kWh per hour). Data is historical, so forecasts are not live readings.</p></div>
+<div class="card"><h3>LSTM Methodology</h3><p>Hourly aggregation → gaps ≤24 h interpolated → chronological split → Min-Max scaling → 24-hour sliding windows → LSTM training (Adam, MSE) → test MAE/RMSE vs naive baseline → recursive 24-step forecast.</p></div><div class="card"><h3>Advantages & Future Scope</h3><p>No server or install, private (data stays in browser), reproducible metrics. Future: multivariate inputs, direct multi-step output, Web Worker training, live smart-meter feeds.</p></div></div></section>
+</main></div><div id="toasts"></div><div id="loader" hidden><div class="spin"></div><p id="ltxt">Loading…</p></div>
+<script>try{localStorage.setItem('_t','1');localStorage.removeItem('_t')}catch(e){try{Object.defineProperty(window,'localStorage',{value:{getItem(k){return this[k]??null},setItem(k,v){this[k]=String(v)},removeItem(k){delete this[k]}},configurable:true})}catch(e2){}}</script><script>/* EnergyLSTM data layer: streaming CSV -> hourly kWh series, windowing, summary. No DOM dependencies. */
+(function (root) {
+  const L = 24, H = 36e5;
+  const fmt = ms => new Date(ms).toISOString().slice(0, 16).replace('T', ' ');
+
+  function HourlyParser() {
+    let buf = '', ready = false, sep = ';', iD, iT, iP, iDT, sums = new Map(), cnts = new Map(), rows = 0, bad = 0, minH = Infinity, maxH = -Infinity;
+    const header = line => {
+      sep = line.includes(';') ? ';' : ',';
+      const c = line.replace(/^\uFEFF/, '').replace(/\r/g, '').split(sep).map(s => s.trim().replace(/^"|"$/g, '').toLowerCase());
+      iP = c.indexOf('global_active_power'); iD = c.indexOf('date'); iT = c.indexOf('time');
+      iDT = c.findIndex(x => ['datetime', 'timestamp', 'date_time'].includes(x));
+      const miss = [];
+      if (iP < 0) miss.push('Global_active_power');
+      if (iDT < 0 && (iD < 0 || iT < 0)) miss.push('Date + Time (or one Datetime column)');
+      if (miss.length) throw new Error(`Invalid file. Missing column(s): ${miss.join(', ')}. Found: ${c.join(', ')}. Expected UCI format: Date;Time;Global_active_power;...`);
+      ready = true;
+    };
+    const hourIdx = (d, t) => {
+      d = (d || '').trim();
+      const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(d);
+      if (m && t) return Date.UTC(+m[3], m[2] - 1, +m[1], parseInt(t, 10)) / H;          // UCI: dd/mm/yyyy, hh:mm:ss
+      let s = (t ? d + 'T' + t.trim() : d).replace(' ', 'T');
+      if (!/Z|[+-]\d\d:?\d\d$/.test(s)) s += 'Z';
+      const ms = Date.parse(s); return isNaN(ms) ? NaN : Math.floor(ms / H);
+    };
+    const line = l => {
+      if (!l.trim()) return;
+      if (!ready) return header(l);
+      const p = l.split(sep), g = parseFloat(p[iP]);
+      if (!(g >= 0)) { bad++; return; }                                                    // '?' or invalid -> missing
+      const h = iDT >= 0 ? hourIdx(p[iDT]) : hourIdx(p[iD], p[iT]);
+      if (!isFinite(h)) { bad++; return; }
+      sums.set(h, (sums.get(h) || 0) + g); cnts.set(h, (cnts.get(h) || 0) + 1); rows++;
+      if (h < minH) minH = h; if (h > maxH) maxH = h;
+    };
+    return {
+      push(txt) { buf += txt; const i = buf.lastIndexOf('\n'); if (i < 0) return; const ls = buf.slice(0, i).split('\n'); buf = buf.slice(i + 1); for (const l of ls) line(l); },
+      finish() {
+        line(buf); buf = '';
+        if (!rows) throw new Error('No valid rows found (all Global_active_power values missing or dates unparseable).');
+        let mc = 0; cnts.forEach(c => { if (c > mc) mc = c; });
+        const thr = Math.max(1, Math.min(30, mc * .5)), v = new Array(maxH - minH + 1).fill(NaN);   // mean kW over the hour == kWh for that hour
+        sums.forEach((s, h) => { const c = cnts.get(h); if (c >= thr) v[h - minH] = s / c; });
+        let i = 0;                                                                               // linearly fill gaps <= 24h only
+        while (i < v.length) { if (!isNaN(v[i])) { i++; continue; } let j = i; while (j < v.length && isNaN(v[j])) j++;
+          if (i > 0 && j < v.length && j - i <= 24) for (let k = i; k < j; k++) v[k] = v[i - 1] + (v[j] - v[i - 1]) * (k - i + 1) / (j - i + 1); i = j; }
+        return { start: minH, v, rows, bad };
+      }
+    };
+  }
+
+  function makeWindows(v) {              // target indices t with 24 valid inputs + valid target
+    const out = []; let run = 0;
+    for (let i = 0; i < v.length; i++) { run = v[i] >= 0 ? run + 1 : 0; if (i >= L && run >= L + 1) out.push(i); }
+    return out;
+  }
+  function lastValidEnd(v) { let run = 0, e = -1; for (let i = 0; i < v.length; i++) { run = v[i] >= 0 ? run + 1 : 0; if (run >= L) e = i + 1; } return e; }
+
+  function summarize(s) {
+    const v = s.v, ok = [], hp = Array(24).fill(0), hc = Array(24).fill(0), wp = Array(7).fill(0), wc = Array(7).fill(0), mo = {};
+    let tot = 0, pk = { v: -1 }, lo = { v: Infinity };
+    v.forEach((x, i) => { if (!(x >= 0)) return; ok.push(x); tot += x; const ms = (s.start + i) * H, d = new Date(ms), h = d.getUTCHours(), w = (d.getUTCDay() + 6) % 7, k = d.toISOString().slice(0, 7);
+      hp[h] += x; hc[h]++; wp[w] += x; wc[w]++; (mo[k] = mo[k] || [0, 0]); mo[k][0] += x; mo[k][1]++;
+      if (x > pk.v) pk = { v: x, t: ms }; if (x < lo.v) lo = { v: x, t: ms }; });
+    if (!ok.length) throw new Error('Series has no valid values.');
+    const so = [...ok].sort((a, b) => a - b), q = p => so[Math.floor(p * (so.length - 1))], e = lastValidEnd(v), days = {};
+    if (e > 0) for (let i = Math.max(0, e - 720); i < e; i++) if (v[i] >= 0) { const k = Math.floor((s.start + i) / 24); (days[k] = days[k] || [0, 0]); days[k][0] += v[i]; days[k][1]++; }
+    const dk = Object.keys(days).filter(k => days[k][1] >= 20).slice(-30);
+    return { startMs: s.start * H, endMs: (s.start + v.length - 1) * H, hours: v.length, validHours: ok.length, missingHours: v.length - ok.length, rawRows: s.rows,
+      total: tot, mean: tot / ok.length, peak: pk, low: lo, q33: q(.33), q66: q(.66),
+      hourProfile: hp.map((x, i) => x / (hc[i] || 1)), weekdayProfile: wp.map((x, i) => x / (wc[i] || 1)),
+      monthly: { labels: Object.keys(mo), values: Object.values(mo).map(a => a[0] / a[1]) },
+      daily: { labels: dk.map(k => new Date(k * 24 * H).toISOString().slice(0, 10)), values: dk.map(k => days[k][0] / days[k][1] * 24) },
+      recent: e > 0 ? { labels: Array.from({ length: Math.min(168, e) }, (_, i) => fmt((s.start + e - Math.min(168, e) + i) * H)), values: v.slice(Math.max(0, e - 168), e).map(x => x >= 0 ? +x.toFixed(3) : null) } : null,
+      preview: v.slice(0, 10).map((x, i) => ({ t: fmt((s.start + i) * H), kw: x >= 0 ? +x.toFixed(3) : null })),
+      lastWindow: e > 0 ? { values: v.slice(e - L, e), endMs: (s.start + e - 1) * H } : null };
+  }
+  const ED = { L, H, fmt, HourlyParser, makeWindows, lastValidEnd, summarize };
+  if (typeof module !== 'undefined') module.exports = ED; else root.ED = ED;
+})(this);
+</script><script>'use strict';
+if (typeof tf === 'undefined' || typeof Chart === 'undefined') {
+  document.body.insertAdjacentHTML('afterbegin', '<div class="banner">TensorFlow.js or Chart.js failed to load from the CDN. Check your internet connection / ad-blocker and reload.</div>');
+  throw new Error('Required libraries failed to load');
+}
+const L = ED.L, $ = s => document.querySelector(s), MK = 'indexeddb://energylstm', LK = 'energylstm-meta';
+const S = { series: null, user: null, model: null, meta: null, summary: null, charts: {}, busy: false, dataErr: '', dataSrc: '' };
+const PAGES = [['home', '🏠', 'Home'], ['dashboard', '📊', 'Dashboard'], ['dataset', '🗂️', 'Dataset'], ['training', '🧠', 'Model Training'], ['prediction', '🔮', 'Energy Prediction'], ['analytics', '📈', 'Analytics'], ['performance', '🎯', 'Model Performance'], ['optimization', '💡', 'Energy Optimization'], ['about', 'ℹ️', 'About Project']];
+const f = (x, d = 2) => Number(x).toLocaleString(undefined, { maximumFractionDigits: d });
+const stat = (l, v, s = '') => `<div class="stat"><small>${l}</small><b>${v}</b><em>${s}</em></div>`;
+const tariff = () => ({ cur: localStorage.cur || '₹', rate: +(localStorage.rate || 7), fixed: +(localStorage.fixed || 0) });
+const toast = (m, t = 'info') => { const d = document.createElement('div'); d.className = 'toast ' + t; d.textContent = m; $('#toasts').append(d); setTimeout(() => d.remove(), t == 'err' ? 7000 : 3500); };
+const loader = (on, t) => { $('#loader').hidden = !on; if (t) $('#ltxt').textContent = t; };
+const empty = (el, msg, go, label) => el.innerHTML = `<div class="card empty"><p>${msg}</p><button class="btn" data-go="${go}">${label}</button></div>`;
+const mk = (id, type, labels, sets, opt = {}) => { S.charts[id]?.destroy(); S.charts[id] = new Chart(document.getElementById(id), { type, data: { labels, datasets: sets }, options: { responsive: true, maintainAspectRatio: false, animation: { duration: 600 }, interaction: { mode: 'index', intersect: false }, elements: { point: { radius: 0 } }, ...opt } }); };
+const ds = (label, data, c, x = {}) => ({ label, data, borderColor: c, backgroundColor: c + '33', tension: .3, borderWidth: 2, ...x });
+const xt = { scales: { x: { ticks: { maxTicksLimit: 8 } } } };
+
+function status() {
+  const d = $('#chD'), m = $('#chM');
+  d.className = 'chip ' + (S.series ? 'ok' : S.summary ? 'warn' : 'bad'); d.textContent = 'Dataset: ' + (S.series ? 'loaded' : S.summary ? 'summary only' : 'not loaded');
+  m.className = 'chip ' + (S.model ? 'ok' : 'bad'); m.textContent = 'Model: ' + (S.model ? 'trained / loaded' : 'not trained');
+}
+
+/* ---------- navigation / theme ---------- */
+$('#nav').innerHTML = PAGES.map(p => `<a href="#${p[0]}" data-p="${p[0]}">${p[1]} ${p[2]}</a>`).join('');
+document.addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) location.hash = g.dataset.go; if (e.target.closest('nav a')) $('#side').classList.remove('open'); });
+$('#burger').onclick = () => $('#side').classList.toggle('open'); $('#shade').onclick = () => $('#side').classList.remove('open');
+function theme(t) { document.documentElement.dataset.theme = t; localStorage.theme = t; Chart.defaults.color = t == 'dark' ? '#cbd5e1' : '#475569'; Chart.defaults.borderColor = t == 'dark' ? '#26365a' : '#e2e8f0'; }
+$('#theme').onclick = () => { theme(document.documentElement.dataset.theme == 'dark' ? 'light' : 'dark'); route(); };
+const R = {};
+async function route() {
+  const id = PAGES.some(p => p[0] == location.hash.slice(1)) ? location.hash.slice(1) : 'home';
+  document.querySelectorAll('.page').forEach(s => s.hidden = s.id != id); document.querySelectorAll('nav a').forEach(a => a.classList.toggle('on', a.dataset.p == id));
+  $('#ptitle').textContent = PAGES.find(p => p[0] == id)[2]; status();
+  try { await R[id]?.(); } catch (e) { console.error(e); toast(`Error on ${id}: ${e.message}`, 'err'); }
+}
+window.onhashchange = route;
+
+/* ---------- data loading ---------- */
+async function feed(reader, size, prog) {
+  const p = ED.HourlyParser(), dec = new TextDecoder(); let n = 0;
+  for (;;) { const { done, value } = await reader.read(); if (done) break; n += value.length; p.push(dec.decode(value, { stream: true })); if (size) prog?.(n / size); }
+  p.push(dec.decode()); return p.finish();
+}
+function setSeries(s, src) {
+  S.series = s; S.dataSrc = src; S.dataErr = ''; S.summary = ED.summarize(s); S.user = null; status();
+}
+function prog(p) { $('#dbar').hidden = false; $('#dbar i').style.width = Math.min(100, p * 100) + '%'; }
+async function autoDataset(manual) {
+  if (S.busy) return toast('Another operation is still running – please wait.', 'err'); S.busy = true; const why = []; $('#dmsg').textContent = 'Trying to load dataset…'; $('#autoBtn') && ($('#autoBtn').disabled = true);
+  try {
+    try {
+      const r = await fetch('data/household_power_consumption.txt'); if (!r.ok || (r.headers.get('content-type') || '').includes('html')) throw new Error('file not found');
+      setSeries(await feed(r.body.getReader(), +r.headers.get('content-length'), prog), 'data/household_power_consumption.txt (local)'); return ok();
+    } catch (e) { why.push('Local data/ file: ' + e.message); }
+    try {
+      $('#dmsg').textContent = 'Downloading UCI zip (~20 MB)…';
+      const r = await fetch('https://archive.ics.uci.edu/static/public/235/individual+household+electric+power+consumption.zip'); if (!r.ok) throw new Error('HTTP ' + r.status);
+      const z = await JSZip.loadAsync(await r.arrayBuffer()), ent = z.file(/household_power_consumption\.txt$/)[0]; if (!ent) throw new Error('txt not found in zip');
+      $('#dmsg').textContent = 'Unzipping and aggregating minute data to hourly…'; const u8 = await ent.async('uint8array'), p = ED.HourlyParser(), dec = new TextDecoder();
+      for (let o = 0; o < u8.length; o += 4e6) { p.push(dec.decode(u8.subarray(o, o + 4e6), { stream: true })); prog(o / u8.length); await new Promise(r => setTimeout(r)); }
+      p.push(dec.decode()); setSeries(p.finish(), 'UCI repository download'); return ok();
+    } catch (e) { why.push('UCI download: ' + e.message + ' (the browser may block it: CORS / offline)'); }
+    S.dataErr = why.join(' | '); toast('Dataset could not be loaded automatically. See Dataset page.', 'err');
+  } finally { S.busy = false; $('#autoBtn') && ($('#autoBtn').disabled = false); status(); if (location.hash == '#dataset') R.dataset(); }
+  function ok() { toast('Dataset loaded: ' + f(S.summary.validHours, 0) + ' valid hourly values', 'ok'); }
+}
+async function fileDataset(file) {
+  if (S.busy) return toast('Another operation is still running – please wait.', 'err'); S.busy = true; loader(true, 'Parsing ' + file.name + '…');
+  try { setSeries(await feed(file.stream().getReader(), file.size, p => $('#ltxt').textContent = `Parsing ${file.name}… ${(p * 100).toFixed(0)}%`), 'Uploaded: ' + file.name); toast('Dataset loaded from ' + file.name, 'ok'); }
+  catch (e) { S.dataErr = e.message; toast(e.message, 'err'); } finally { S.busy = false; loader(false); R.dataset(); status(); }
+}
+$('#autoBtn').onclick = () => autoDataset(true);
+$('#dupBtn').onclick = () => { const x = $('#dfile').files[0]; x ? fileDataset(x) : toast('Choose a file first', 'err'); };
+
+R.dataset = () => {
+  const s = S.summary, el = document.querySelector('#dataset .body');
+  $('#dmsg').innerHTML = S.dataErr ? `<span class="err">${S.dataErr}</span><br>No internet? Download the zip from <a href="https://archive.ics.uci.edu/dataset/235" target="_blank">archive.ics.uci.edu/dataset/235</a>, extract <code>household_power_consumption.txt</code>, then use the upload box above (or place it in <code>data/</code> when hosting).` : (S.series ? 'Source: ' + S.dataSrc : '');
+  if (!s) return empty(el, 'No dataset loaded.', 'dataset', 'Dataset required');
+  el.innerHTML = `<div class="grid4">${stat('Hourly values', f(s.hours, 0), 'span of series')}${stat('Valid hours', f(s.validHours, 0))}${stat('Missing hours', f(s.missingHours, 0), 'gaps >24h stay missing')}${stat('Raw minute rows', f(s.rawRows || 0, 0))}</div>
+  <div class="card"><h3>Range</h3><p>${ED.fmt(s.startMs)} → ${ED.fmt(s.endMs)} (UTC, naive timestamps) ${S.series ? '' : '<span class="tag rule">saved summary – reload data to retrain</span>'}</p></div>
+  <div class="card"><h3>Preview (first 10 hourly values, kWh/h)</h3><table><tr><th>Hour</th><th>Energy (kWh)</th></tr>${s.preview.map(r => `<tr><td>${r.t}</td><td>${r.kw ?? 'missing'}</td></tr>`).join('')}</table></div>`;
+};
+
+/* ---------- model helpers ---------- */
+const inv = x => Math.max(0, x * (S.meta.max - S.meta.min) + S.meta.min);
+function predictScaled(model, X, n) {
+  const out = new Float32Array(n);
+  for (let o = 0; o < n; o += 2048) { const m = Math.min(2048, n - o), t = tf.tidy(() => model.predict(tf.tensor3d(X.subarray(o * L, (o + m) * L), [m, L, 1]))); out.set(t.dataSync(), o); t.dispose(); }
+  return out;
+}
+function forecast(win) {
+  const w = [...win], out = [];
+  for (let k = 0; k < 24; k++) { const x = new Float32Array(w.slice(-L).map(v => (v - S.meta.min) / (S.meta.max - S.meta.min))); const p = inv(predictScaled(S.model, x, 1)[0]); out.push(p); w.push(p); }
+  return out;
+}
+function source() {
+  const ser = S.user || S.series;
+  if (ser) { const e = ED.lastValidEnd(ser.v); if (e < 0) return null; return { win: ser.v.slice(e - L, e), endMs: (ser.start + e - 1) * ED.H, label: S.user ? 'Your uploaded CSV' : 'Training dataset (historical)' }; }
+  const w = S.meta?.summary?.lastWindow; return w ? { win: w.values, endMs: w.endMs, label: 'Saved last window of the training dataset (historical)' } : null;
+}
+const fut = (end, n) => Array.from({ length: n }, (_, i) => ED.fmt(end + (i + 1) * ED.H));
+function getForecast() { if (!S.model) return null; const s = source(); if (!s) return null; const fc = forecast(s.win); return { s, fc, labels: fut(s.endMs, 24) }; }
+function backtest(ser) {
+  const idx = ED.makeWindows(ser.v).slice(-168); if (!idx.length) return null; const X = new Float32Array(idx.length * L), A = [];
+  idx.forEach((t, k) => { for (let j = 0; j < L; j++) X[k * L + j] = (ser.v[t - L + j] - S.meta.min) / (S.meta.max - S.meta.min); A.push(ser.v[t]); });
+  const P = Array.from(predictScaled(S.model, X, idx.length), inv); let ae = 0, se = 0; A.forEach((a, i) => { ae += Math.abs(a - P[i]); se += (a - P[i]) ** 2; });
+  return { labels: idx.map(t => ED.fmt((ser.start + t) * ED.H)), actual: A.map(x => +x.toFixed(3)), pred: P.map(x => +x.toFixed(3)), mae: ae / A.length, rmse: Math.sqrt(se / A.length) };
+}
+
+/* ---------- training ---------- */
+async function loadSaved() {
+  const attempts = [async () => { const m = JSON.parse(localStorage.getItem(LK) || 'null'); if (!m) throw 0; return [m, await tf.loadLayersModel(MK)]; },
+    async () => { const r = await fetch('model/meta.json'); if (!r.ok) throw 0; const m = await r.json(); return [m, await tf.loadLayersModel('model/model.json')]; }];
+  for (const a of attempts) { try { [S.meta, S.model] = await a(); S.summary = S.meta.summary; toast('Pre-trained LSTM loaded automatically', 'ok'); return; } catch (e) { } }
+}
+$('#trainBtn').onclick = async () => {
+  if (S.busy) return toast('Another operation is still running – please wait.', 'err'); if (!S.series) return toast('Load a dataset first (Dataset page).', 'err');
+  const ep = +$('#ep').value, bs = +$('#bs').value, v = S.series.v, n = v.length, t1 = Math.floor(.7 * n), t2 = Math.floor(.85 * n);
+  let mn = Infinity, mx = -Infinity; for (let i = 0; i < t1; i++) if (v[i] >= 0) { mn = Math.min(mn, v[i]); mx = Math.max(mx, v[i]); }
+  const all = ED.makeWindows(v), sp = [all.filter(t => t < t1), all.filter(t => t >= t1 && t < t2), all.filter(t => t >= t2)];
+  if (sp.some(a => a.length < 100)) return toast('Not enough continuous hourly data (need ≥100 windows in each split).', 'err');
+  const build = idx => { const X = new Float32Array(idx.length * L), y = new Float32Array(idx.length); idx.forEach((t, k) => { for (let j = 0; j < L; j++) X[k * L + j] = (v[t - L + j] - mn) / (mx - mn); y[k] = (v[t] - mn) / (mx - mn); }); return { X, y, n: idx.length }; };
+  const [tr, va, te] = sp.map(build), T = d => [tf.tensor3d(d.X, [d.n, L, 1]), tf.tensor2d(d.y, [d.n, 1])], [xtr, ytr] = T(tr), [xva, yva] = T(va);
+  S.busy = true; $('#trainBtn').disabled = true; $('#stopBtn').disabled = false; $('#tlog').textContent = ''; $('#tbar i').style.width = '0%'; S.charts.tc?.destroy();
+  if (tf.getBackend() !== 'webgl') toast('WebGL is not available – training on the ' + tf.getBackend() + ' backend will be slow.', 'info');
+  const m = tf.sequential({ name: 'EnergyLSTM' }); m.add(tf.layers.lstm({ units: 48, inputShape: [L, 1], returnSequences: true })); m.add(tf.layers.lstm({ units: 24 })); m.add(tf.layers.dropout({ rate: .1 })); m.add(tf.layers.dense({ units: 16, activation: 'relu' })); m.add(tf.layers.dense({ units: 1 }));
+  m.compile({ optimizer: tf.train.adam(.003), loss: 'meanSquaredError', metrics: ['mae'] }); S.stopFn = () => m.stopTraining = true;
+  const H = { loss: [], val_loss: [], mae: [], val_mae: [] };
+  try {
+    await m.fit(xtr, ytr, { epochs: ep, batchSize: bs, shuffle: true, validationData: [xva, yva], callbacks: {
+      onBatchEnd: async b => { if (b % 10 === 0) await tf.nextFrame(); },
+      onEpochEnd: async (e, l) => { H.loss.push(l.loss); H.val_loss.push(l.val_loss); H.mae.push(l.mae ?? l.meanAbsoluteError); H.val_mae.push(l.val_mae ?? l.val_meanAbsoluteError);
+        $('#tbar i').style.width = (e + 1) / ep * 100 + '%'; $('#tmsg').textContent = `Epoch ${e + 1}/${ep} · loss ${l.loss.toFixed(5)} · val_loss ${l.val_loss.toFixed(5)}`;
+        $('#tlog').textContent += `epoch ${e + 1}: loss=${l.loss.toFixed(5)} mae=${(H.mae.at(-1)).toFixed(5)} val_loss=${l.val_loss.toFixed(5)} val_mae=${H.val_mae.at(-1).toFixed(5)}\n`;
+        mk('tc', 'line', H.loss.map((_, i) => i + 1), [ds('Training loss', H.loss, '#2563eb'), ds('Validation loss', H.val_loss, '#f59e0b')]); await tf.nextFrame(); } } });
+    if (!H.loss.length) throw new Error('Training produced no epochs.');
+    $('#tmsg').textContent = 'Evaluating on the held-out test set…';
+    S.model = m; S.meta = { min: mn, max: mx }; const pr = Array.from(predictScaled(m, te.X, te.n), inv); let ae = 0, se = 0, bl = 0;
+    sp[2].forEach((t, i) => { const a = v[t]; ae += Math.abs(a - pr[i]); se += (a - pr[i]) ** 2; bl += Math.abs(a - v[t - 1]); });
+    const k = Math.min(168, te.n), tix = sp[2].slice(-k), arch = []; m.layers.forEach(l => arch.push(`${l.name.padEnd(14)} ${l.getClassName().padEnd(8)} out=${JSON.stringify(l.outputShape)} params=${l.countParams()}`)); arch.push('Total params: ' + m.countParams());
+    S.meta = { min: mn, max: mx, trainedAt: new Date().toISOString(), backend: tf.getBackend(), config: { epochs: ep, epochsRun: H.loss.length, batch: bs, lookback: L, optimizer: 'adam lr=0.003', loss: 'MSE' }, hist: H, arch,
+      metrics: { mae: ae / te.n, rmse: Math.sqrt(se / te.n), baseline: bl / te.n }, counts: { train: tr.n, val: va.n, test: te.n, hours: n, source: S.dataSrc },
+      test: { labels: tix.map(t => ED.fmt((S.series.start + t) * ED.H)), actual: tix.map(t => +v[t].toFixed(3)), pred: pr.slice(-k).map(x => +x.toFixed(3)) }, summary: S.summary };
+    try { await m.save(MK); localStorage.setItem(LK, JSON.stringify(S.meta)); toast(`Training complete & model saved. Test MAE ${f(S.meta.metrics.mae, 4)} kW`, 'ok'); }
+    catch (e) { toast('Trained, but saving to browser storage FAILED: ' + e.message, 'err'); }
+    $('#tmsg').textContent = `Done (${H.loss.length} epochs, backend ${tf.getBackend()}). Test MAE ${f(S.meta.metrics.mae, 4)} kW, RMSE ${f(S.meta.metrics.rmse, 4)} kW.`;
+  } catch (e) { toast('Training failed: ' + e.message, 'err'); $('#tmsg').textContent = 'Failed: ' + e.message; }
+  finally { [xtr, ytr, xva, yva].forEach(t => t.dispose()); S.busy = false; $('#trainBtn').disabled = false; $('#stopBtn').disabled = true; status(); }
+};
+$('#stopBtn').onclick = () => S.stopFn?.();
+$('#dlBtn').onclick = async () => { if (!S.model) return toast('No trained model to download.', 'err'); await S.model.save('downloads://energylstm'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(S.meta)], { type: 'application/json' })); a.download = 'meta.json'; a.click(); toast('Downloaded energylstm.json, energylstm.weights.bin, meta.json', 'ok'); };
+$('#delBtn').onclick = async () => { try { await tf.io.removeModel(MK); } catch (e) { } localStorage.removeItem(LK); S.model = S.meta = null; if (!S.series) S.summary = null; status(); toast('Saved model deleted', 'info'); };
+R.training = () => { if (S.meta?.hist) { const h = S.meta.hist; mk('tc', 'line', h.loss.map((_, i) => i + 1), [ds('Training loss', h.loss, '#2563eb'), ds('Validation loss', h.val_loss, '#f59e0b')]); } };
+
+/* ---------- pages needing data / model ---------- */
+R.dashboard = () => {
+  const s = S.summary, el = document.querySelector('#dashboard .body'); if (!s && !S.model) return empty(el, 'No dataset or model loaded yet.', 'dataset', 'Go to Dataset');
+  const g = getForecast(), c = [];
+  if (s) c.push(stat('Total energy', f(s.total, 0) + ' kWh', 'valid hours only'), stat('Avg hourly', f(s.mean, 3) + ' kWh'), stat('Peak hour', f(s.peak.v, 2) + ' kWh', ED.fmt(s.peak.t)), stat('Lowest hour', f(s.low.v, 3) + ' kWh', ED.fmt(s.low.t)));
+  c.push(stat('Dataset status', S.series ? 'Loaded' : s ? 'Summary only' : 'Not loaded', S.dataSrc), stat('Model status', S.model ? 'Trained ✓' : 'Not trained', S.meta ? `MAE ${f(S.meta.metrics.mae, 3)} kW` : ''),
+    stat('Latest prediction', g ? f(g.fc[0], 3) + ' kWh' : '–', g ? `for ${g.labels[0]} · from historical window, not live` : 'train a model first'));
+  el.innerHTML = `<div class="grid4">${c.join('')}</div>` + (s?.recent ? `<div class="card"><h3>Last 168 hours of the dataset (kWh/h)</h3><div class="ch"><canvas id="d1"></canvas></div></div>` : '');
+  if (s?.recent) mk('d1', 'line', s.recent.labels, [ds('kWh', s.recent.values, '#2563eb', { fill: true })], xt);
+};
+R.prediction = () => {
+  const el = document.querySelector('#prediction .body'); $('#psrc').textContent = ''; if (!S.model) return empty(el, 'No trained LSTM yet. Predictions are shown only after a model is trained or loaded.', 'training', 'Go to Model Training');
+  const g = getForecast(); if (!g) return empty(el, 'No complete 24-hour window available. Load a dataset or upload a CSV.', 'dataset', 'Go to Dataset');
+  $('#psrc').textContent = `Source window: ${g.s.label}, ending ${ED.fmt(g.s.endMs)} UTC. This is historical data, not a real-time reading.`;
+  const tot = g.fc.reduce((a, b) => a + b, 0), pk = g.fc.indexOf(Math.max(...g.fc)), lo = g.fc.indexOf(Math.min(...g.fc)), bt = S.user ? backtest(S.user) : S.meta.test, hm = S.summary?.mean;
+  const trend = S.summary?.daily?.labels.length ? S.summary.daily : null;
+  el.innerHTML = `<div class="grid4">${stat('Next hour (' + g.labels[0].slice(11) + ')', f(g.fc[0], 3) + ' kWh', 'LSTM')}${stat('Next 24h total', f(tot) + ' kWh')}${stat('Peak hour', g.labels[pk].slice(11) + ' · ' + f(g.fc[pk], 2) + ' kW')}${stat('Lowest hour', g.labels[lo].slice(11) + ' · ' + f(g.fc[lo], 2) + ' kW')}</div>
+  <div class="grid2"><div class="card"><h3>24-hour forecast (kWh/h)</h3><div class="ch"><canvas id="p1"></canvas></div></div><div class="card"><h3>Actual vs predicted ${S.user ? '(your CSV, last 168 h)' : '(held-out test set)'}</h3><div class="ch"><canvas id="p2"></canvas></div></div></div>
+  ${trend ? `<div class="card"><h3>Energy consumption trend (daily kWh) + forecast day</h3><div class="ch"><canvas id="p3"></canvas></div></div>` : ''}
+  <div class="card"><h3>Forecast summary</h3><p>The LSTM forecasts <b>${f(tot)} kWh</b> over the 24 hours after ${ED.fmt(g.s.endMs)}, peaking around <b>${g.labels[pk].slice(11)}</b> (${f(g.fc[pk], 2)} kW)${hm ? ` — ${f((tot / 24 / hm - 1) * 100, 0)}% vs the dataset's average hourly use` : ''}. Hours 2–24 are recursive (each prediction feeds the next), so uncertainty grows with horizon. ${bt ? `${S.user ? 'MAE on your file (last 168 h): ' + f(bt.mae, 3) : 'Overall test-set MAE: ' + f(S.meta.metrics.mae, 3)} kW.` : ''}</p></div>`;
+  const ctx = g.s.win; mk('p1', 'line', [...fut(g.s.endMs - 24 * ED.H, 24), ...g.labels].map(x => x.slice(5)), [ds('Observed (last 24h)', [...ctx, ...Array(24).fill(null)], '#10b981'), ds('LSTM forecast', [...Array(23).fill(null), ctx[23], ...g.fc], '#2563eb', { borderDash: [6, 4] })], xt);
+  if (bt) mk('p2', 'line', bt.labels, [ds('Actual', bt.actual, '#10b981'), ds('Predicted', bt.pred, '#2563eb')], xt);
+  if (trend) mk('p3', 'bar', [...trend.labels, 'Forecast 24h'], [{ label: 'kWh/day', data: [...trend.values, tot], backgroundColor: [...trend.values.map(() => '#2563ebaa'), '#f59e0b'], borderRadius: 5 }]);
+};
+$('#uBtn').onclick = async () => {
+  const x = $('#ufile').files[0]; if (!S.model) return toast('Train or load a model first.', 'err'); if (!x) return toast('Choose a CSV first.', 'err'); $('#uerr').textContent = ''; loader(true, 'Parsing your CSV…');
+  try { const s = await feed(x.stream().getReader(), x.size); if (ED.lastValidEnd(s.v) < 0) throw new Error('Need at least 24 consecutive hours of data.'); S.user = s; toast('Using your CSV for prediction', 'ok'); }
+  catch (e) { $('#uerr').textContent = e.message; toast(e.message, 'err'); } finally { loader(false); R.prediction(); }
+};
+$('#uRst').onclick = () => { S.user = null; R.prediction(); };
+R.analytics = () => {
+  const s = S.summary, el = document.querySelector('#analytics .body'); if (!s) return empty(el, 'Load a dataset to see analytics.', 'dataset', 'Go to Dataset');
+  el.innerHTML = `<div class="grid2"><div class="card"><h3>Average load by hour of day (kW)</h3><div class="ch"><canvas id="a1"></canvas></div></div><div class="card"><h3>Average load by weekday (kW)</h3><div class="ch"><canvas id="a2"></canvas></div></div></div><div class="card"><h3>Monthly average load (kW)</h3><div class="ch"><canvas id="a3"></canvas></div></div>`;
+  mk('a1', 'line', [...Array(24).keys()].map(h => h + ':00'), [ds('kW', s.hourProfile, '#2563eb', { fill: true })]); mk('a2', 'bar', ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], [{ label: 'kW', data: s.weekdayProfile, backgroundColor: '#2563ebcc', borderRadius: 6 }]);
+  mk('a3', 'line', s.monthly.labels, [ds('kW', s.monthly.values, '#06b6d4', { fill: true })]);
+};
+R.performance = () => {
+  const m = S.meta, el = document.querySelector('#performance .body'); if (!m) return empty(el, 'No trained model. Metrics are available after training (they are computed from real evaluation, never preset).', 'training', 'Go to Model Training');
+  const h = m.hist, c = m.counts; if (!h) return empty(el, 'This model was loaded without training history.', 'training', 'Train model');
+  const e = h.loss.map((_, i) => i + 1);
+  el.innerHTML = `<div class="grid4">${stat('Test MAE', f(m.metrics.mae, 4) + ' kW')}${stat('Test RMSE', f(m.metrics.rmse, 4) + ' kW')}${stat('Naive baseline MAE', f(m.metrics.baseline, 4) + ' kW', 'predict = previous hour')}${stat('Epochs run', m.config.epochsRun, 'backend ' + m.backend)}</div>
+  <div class="grid2"><div class="card"><h3>Training vs validation loss</h3><div class="ch"><canvas id="m1"></canvas></div></div><div class="card"><h3>Training vs validation MAE (scaled)</h3><div class="ch"><canvas id="m2"></canvas></div></div></div>
+  <div class="card"><h3>Actual vs predicted – test set (last ${m.test.labels.length} h)</h3><div class="ch"><canvas id="m3"></canvas></div></div>
+  <div class="grid2"><div class="card"><h3>Architecture</h3><pre>${m.arch.join('\n')}</pre></div><div class="card"><h3>Data information</h3><table><tr><td>Source</td><td>${c.source}</td></tr><tr><td>Hourly values</td><td>${f(c.hours, 0)}</td></tr><tr><td>Train / Val / Test windows</td><td>${f(c.train, 0)} / ${f(c.val, 0)} / ${f(c.test, 0)}</td></tr><tr><td>Lookback → target</td><td>${m.config.lookback} h → next hour</td></tr><tr><td>Optimizer / loss</td><td>${m.config.optimizer} / ${m.config.loss}</td></tr><tr><td>Trained at</td><td>${m.trainedAt}</td></tr></table></div></div>`;
+  mk('m1', 'line', e, [ds('Training loss', h.loss, '#2563eb'), ds('Validation loss', h.val_loss, '#f59e0b')]); mk('m2', 'line', e, [ds('Train MAE', h.mae, '#2563eb'), ds('Val MAE', h.val_mae, '#f59e0b')]);
+  mk('m3', 'line', m.test.labels, [ds('Actual', m.test.actual, '#10b981'), ds('Predicted', m.test.pred, '#2563eb')], xt);
+};
+R.optimization = () => {
+  const t = tariff(); $('#cur').value = t.cur; $('#rate').value = t.rate; $('#fixed').value = t.fixed;
+  const el = document.querySelector('#optimization .body'); if (!S.model) return empty(el, 'Optimization needs LSTM forecasts. Train or load a model first.', 'training', 'Go to Model Training');
+  const g = getForecast(), s = S.summary; if (!g || !s) return empty(el, 'Need a forecast window and dataset statistics.', 'dataset', 'Go to Dataset');
+  const lv = g.fc.map(x => x <= s.q33 ? 'low' : x <= s.q66 ? 'medium' : 'high'), cnt = k => lv.filter(x => x == k).length, tot = g.fc.reduce((a, b) => a + b, 0), hi = g.labels.filter((_, i) => lv[i] == 'high').map(x => x.slice(11));
+  const hk = g.fc.reduce((a, x, i) => a + (lv[i] == 'high' ? x : 0), 0), pi = s.hourProfile.indexOf(Math.max(...s.hourProfile)), base = s.hourProfile.slice(1, 6).reduce((a, b) => a + b, 0) / 5;
+  const recs = [hi.length ? `Forecast shows ${hi.length} high-load hour(s) (${hi[0]}–${hi.at(-1)}). Shift flexible loads (washing machine, dishwasher, water heater, EV charging) outside them.` : 'No high-load hours forecast for the next 24 h.', `Historically the highest-demand hour is ${String(pi).padStart(2, '0')}:00 (${f(s.hourProfile[pi], 2)} kW avg); avoid stacking heavy appliances then.`,
+    `Overnight (01–05h) base load averages ${f(base, 2)} kW (${f(base / s.mean * 100, 0)}% of mean). Check always-on devices.`, `Cutting forecast high-hour usage by 10% would save ≈ ${f(hk * .1)} kWh/day (≈ ${t.cur}${f(hk * .1 * t.rate)}).`];
+  el.innerHTML = `<div class="grid4">${stat('Forecast 24h energy', f(tot) + ' kWh', '<span class="tag lstm">LSTM</span>')}${stat('Est. daily bill', t.cur + f(tot * t.rate), 'rate × forecast kWh')}${stat('Est. monthly bill', t.cur + f(tot * 30 * t.rate + t.fixed), '30 × daily forecast + fixed (simple projection)')}
+  ${stat('Classes (next 24h)', `<span class="tag low">Low ${cnt('low')}</span> <span class="tag medium">Med ${cnt('medium')}</span> <span class="tag high">High ${cnt('high')}</span>`, `thresholds ${f(s.q33, 2)} / ${f(s.q66, 2)} kW`)}</div>
+  <div class="grid2"><div class="card"><h3>Forecast by hour <span class="tag lstm">LSTM prediction</span></h3><div class="ch"><canvas id="o1"></canvas></div></div><div class="card"><h3>Recommendations <span class="tag rule">Rule-based</span></h3><ul>${recs.map(r => `<li>${r}</li>`).join('')}</ul><p class="muted">Rules use LSTM forecast values and real historical hourly percentiles (33rd/66th). The advice itself is not produced by the neural network.</p></div></div>`;
+  const col = { low: '#10b981', medium: '#f59e0b', high: '#ef4444' }; mk('o1', 'bar', g.labels.map(x => x.slice(11)), [{ label: 'kWh', data: g.fc, backgroundColor: lv.map(x => col[x]), borderRadius: 5 }]);
+};
+$('#applyT').onclick = () => { localStorage.cur = $('#cur').value; localStorage.rate = $('#rate').value; localStorage.fixed = $('#fixed').value; R.optimization(); toast('Tariff applied', 'ok'); };
+
+/* ---------- login (client-side demo) ---------- */
+let authMode = 'login';
+const hashPw = async s => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('energylstm:' + s)))].map(b => b.toString(16).padStart(2, '0')).join('');
+const users = () => { try { return JSON.parse(localStorage.getItem('energylstm-users') || '{}'); } catch (e) { return {}; } };
+function showAuth(on) { $('#authv').hidden = !on; $('#side').style.display = on ? 'none' : ''; document.querySelector('.wrap').style.display = on ? 'none' : ''; }
+function authTab(m) { authMode = m; $('#lname').hidden = m == 'login'; $('#lgo').textContent = m == 'login' ? 'Login' : 'Create account'; $('#tabL').className = 'btn' + (m == 'login' ? '' : ' ghost'); $('#tabR').className = 'btn' + (m == 'register' ? '' : ' ghost'); $('#lerr').textContent = ''; }
+$('#tabL').onclick = () => authTab('login'); $('#tabR').onclick = () => authTab('register');
+async function authGo() {
+  const e = $('#lemail').value.trim().toLowerCase(), p = $('#lpw').value, n = $('#lname').value.trim(), u = users(); $('#lerr').textContent = '';
+  try {
+    if (!/^\S+@\S+\.\S+$/.test(e) || p.length < 6) throw new Error('Enter a valid email and a password of at least 6 characters.');
+    if (!(window.crypto && crypto.subtle)) throw new Error('Secure hashing is unavailable in this browser context.');
+    const h = await hashPw(p);
+    if (authMode == 'register') { if (!n) throw new Error('Enter your name.'); if (u[e]) throw new Error('Email already registered. Please login.'); u[e] = { name: n, h }; localStorage.setItem('energylstm-users', JSON.stringify(u)); toast('Account created', 'ok'); }
+    else if (!u[e] || u[e].h !== h) throw new Error('Invalid email or password.' + (Object.keys(u).length ? '' : ' No accounts exist in this browser yet – use Register.'));
+    localStorage.setItem('energylstm-session', e); enter(e, u[e].name);
+  } catch (x) { $('#lerr').textContent = x.message; }
+}
+$('#lgo').onclick = authGo; $('#lpw').onkeydown = ev => { if (ev.key == 'Enter') authGo(); };
+function enter(e, name) { $('#chU').textContent = '👤 ' + name; showAuth(false); $('#lpw').value = ''; route(); }
+$('#logout').onclick = () => { localStorage.removeItem('energylstm-session'); showAuth(true); authTab('login'); };
+
+/* ---------- init ---------- */
+(async () => {
+  theme(localStorage.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')); status(); loader(true, 'Checking for a saved pre-trained model…');
+  try { await tf.ready(); await loadSaved(); } catch (e) { toast('TensorFlow.js failed to load (offline?): ' + e.message, 'err'); }
+  loader(false); status(); const se = localStorage.getItem('energylstm-session'), us = users()[se];
+  if (us) enter(se, us.name); else { showAuth(true); authTab('login'); }
+  if (!S.summary) autoDataset();     // no model/summary yet -> try to fetch the real dataset automatically
+})();
+</script></body></html>
